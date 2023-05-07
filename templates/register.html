@@ -17,7 +17,7 @@
         {{field(class="form-control")}}
 
         {% for error in field.errors %}
-          {{error(class="font-italic text-danger")}}
+        <span class="font-italic text-danger">{{error}}</span>
         {% endfor %}
       </div>
       {% endfor %}
