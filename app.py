@@ -1,4 +1,4 @@
-from flask import Flask, redirect, render_template
+from flask import Flask, redirect, render_template, flash, session
 from keys import SECRET_KEY
 from flask_debugtoolbar import DebugToolbarExtension
 from forms import RegisterForm, LoginForm
@@ -19,6 +19,14 @@ connect_db(app)
 def redirect_reg():
     return redirect('/register')
 
+@app.route('/secret')
+def show_secret_page():
+    if 'username' not in session:
+        flash('Please sign in first!')
+        return redirect('/login')
+    message = 'You made it!'
+    return render_template('secret.html', message=message)
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register_user():
@@ -35,9 +43,30 @@ def register_user():
         new_user = User.register(username, password, email, first_name, last_name)
         db.session.add(new_user)
         db.session.commit()
+        session['username'] = new_user.username
 
         return redirect('/secret')
 
     return render_template('register.html', form=form)
 
-    
+@app.route('/login', methods=['GET', 'POST'])
+def login_user():
+    form = LoginForm()
+
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+
+        user = User.authenticate(username, password)
+        if user:
+            session['username'] = user.username
+            return redirect('/secret')
+        else:
+            form.username.errors = ['Inavlid username/password']
+
+    return render_template('login.html', form=form)
+
+@app.route('/logout')
+def logout_user():
+    session.pop('username')
+    return redirect('/')
