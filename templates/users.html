@@ -14,4 +14,16 @@
 <h5>{{item.title}}</h5>
 <p>{{item.content}}</p>
 {% endfor %}
+
+<form action="/users/{{user.username}}/feedback/add">
+    <button type="submit" class="btn btn-primary my-3 px-3">Add Feedback</button>
+</form>
+
+<form action="/users/{{user.username}}/delete">
+    <button type="submit" class="btn btn-danger my-3 px-3"
+     onclick="return confirm('Are you sure you want to delete your account and all of the feedback with it?')">
+        Delete Account
+    </button>
+</form>    
+    
 {% endblock %}
