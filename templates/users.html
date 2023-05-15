@@ -7,7 +7,11 @@
 <h3>{{user.first_name}} {{user.last_name}}</h3>
 <p>Username: {{user.username}}<br>
     Email: {{user.email}}<br>
-
-
 </p>
+
+<h3 class="mt-4 py-2">Feedback</h3>
+{% for item in feedback%}
+<h5>{{item.title}}</h5>
+<p>{{item.content}}</p>
+{% endfor %}
 {% endblock %}

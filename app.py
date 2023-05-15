@@ -2,7 +2,7 @@ from flask import Flask, redirect, render_template, flash, session
 from keys import SECRET_KEY
 from flask_debugtoolbar import DebugToolbarExtension
 from forms import RegisterForm, LoginForm
-from models import db, connect_db, User
+from models import db, connect_db, User, Feedback
 
 app = Flask(__name__)
 app.app_context().push()
@@ -10,22 +10,26 @@ app.app_context().push()
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///feedback'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = SECRET_KEY
-app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
 
 debug = DebugToolbarExtension(app)
 connect_db(app)
 
 @app.route('/')
 def redirect_reg():
-    return redirect('/register')
+    if 'username' not in session:
+        return redirect('/register')
+    username = session['username']
+    return redirect(f'/users/{username}')
 
-@app.route('/secret')
-def show_secret_page():
+@app.route('/users/<username>')
+def display_user(username):
     if 'username' not in session:
         flash('Please sign in first!')
         return redirect('/login')
-    message = 'You made it!'
-    return render_template('secret.html', message=message)
+    user = User.query.get(username)
+    feedback = user.feedback
+    return render_template('users.html', user=user, feedback=feedback)
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -45,7 +49,7 @@ def register_user():
         db.session.commit()
         session['username'] = new_user.username
 
-        return redirect('/secret')
+        return redirect(f'/users/{username}')
 
     return render_template('register.html', form=form)
 
@@ -60,7 +64,7 @@ def login_user():
         user = User.authenticate(username, password)
         if user:
             session['username'] = user.username
-            return redirect('/secret')
+            return redirect(f'/users/{username}')
         else:
             form.username.errors = ['Inavlid username/password']
 
