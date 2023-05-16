@@ -10,7 +10,7 @@ app.app_context().push()
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///feedback'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = SECRET_KEY
-app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
 debug = DebugToolbarExtension(app)
 connect_db(app)
@@ -21,16 +21,6 @@ def redirect_reg():
         return redirect('/register')
     username = session['username']
     return redirect(f'/users/{username}')
-
-@app.route('/users/<username>')
-def display_user(username):
-    if 'username' not in session:
-        flash('Please sign in first!')
-        return redirect('/login')
-    user = User.query.get(username)
-    feedback = user.feedback
-    return render_template('users.html', user=user, feedback=feedback)
-
 
 @app.route('/register', methods=['GET', 'POST'])
 def register_user():
@@ -73,4 +63,25 @@ def login_user():
 @app.route('/logout')
 def logout_user():
     session.pop('username')
+    return redirect('/')
+
+@app.route('/users/<username>')
+def display_user(username):
+    if 'username' not in session:
+        flash('Please sign in first!')
+        return redirect('/login')
+    user = User.query.get(username)
+    feedback = user.feedback
+    return render_template('users.html', user=user, feedback=feedback)
+
+@app.route('/users/<username>/delete')
+def delete_user(username):
+    if 'username' not in session:
+        flash('Please sign in first!')
+        return redirect('/login')
+    user = User.query.get(username)
+    session.pop('username')
+    db.session.delete(user)
+    db.session.commit()
+    flash('Your account has been deleted.')
     return redirect('/')
