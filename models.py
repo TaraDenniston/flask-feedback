@@ -22,6 +22,8 @@ class User(db.Model):
 
     def __repr__(self):
         return f'< User {self.username}: {self.first_name} {self.last_name}, {self.email} >'
+    
+    feedback = db.relationship('Feedback', cascade='all,delete', backref='user')
 
     @classmethod
     def register(cls, username, pwd, email, first_name, last_name):
@@ -67,4 +69,4 @@ class Feedback(db.Model):
     def __repr__(self):
         return f'< Feedback {self.id}: {self.title} by {self.username} >'
 
-    user = db.relationship('User', backref='feedback')
+    # user = db.relationship('User', backref='feedback')
