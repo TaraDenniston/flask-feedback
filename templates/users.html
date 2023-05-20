@@ -9,10 +9,24 @@
     Email: {{user.email}}<br>
 </p>
 
-<h3 class="mt-4 py-2">Feedback</h3>
+<h3 class="my-4 py-2">Feedback</h3>
 {% for item in feedback%}
-<h5>{{item.title}}</h5>
-<p>{{item.content}}</p>
+<h5 class="d-inline">{{item.title}}
+    <div class="d-inline mx-3">
+        <form action="/feedback/{{item.id}}/update" class="d-inline">
+            <button type="submit" class="btn btn-secondary btn-sm ml-4">Edit</button>
+        </form>
+        <form action="/feedback/{{item.id}}/delete" method="POST" class="d-inline">
+            <button type="submit" class="btn btn-danger btn-sm"
+             onclick="return confirm('Are you sure you want to delete this feedback?')">
+                Delete
+            </button>
+        </form>
+    </div>
+</h5>
+<p class="mt-1 mb-4">{{item.content}}
+
+</p>
 {% endfor %}
 
 <form action="/users/{{user.username}}/feedback/add">
@@ -27,3 +41,4 @@
 </form>    
     
 {% endblock %}
+
