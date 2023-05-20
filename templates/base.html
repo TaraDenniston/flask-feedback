@@ -22,8 +22,8 @@
         {% endif %}
     </nav>
     <div class="container m-4 m-auto">
-        {% for msg in get_flashed_messages() %}
-        <div class="alert alert-danger mt-3">{{ msg }}</div>
+        {% for category, msg in get_flashed_messages(with_categories=True) %}
+        <div class="alert alert-{{category}} mt-3">{{ msg }}</div>
         {% endfor %}
 
         {% block content %}
