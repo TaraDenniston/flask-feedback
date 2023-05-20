@@ -1,4 +1,4 @@
-from flask import Flask, redirect, render_template, flash, session
+from flask import Flask, redirect, render_template, flash, session, request
 from keys import SECRET_KEY
 from flask_debugtoolbar import DebugToolbarExtension
 from forms import RegisterForm, LoginForm, FeedbackForm
@@ -61,13 +61,13 @@ def login_user():
 @app.route('/logout')
 def logout_user():
     session.pop('username')
-    flash('You are now logged out.')
+    flash('You are now logged out.', 'info')
     return redirect('/login')
 
 @app.route('/users/<username>')
 def display_user(username):
     if 'username' not in session:
-        flash('Please sign in first!')
+        flash('Please sign in first!', 'danger')
         return redirect('/login')
     user = User.query.get(username)
     feedback = user.feedback
@@ -76,19 +76,19 @@ def display_user(username):
 @app.route('/users/<username>/delete')
 def delete_user(username):
     if 'username' not in session:
-        flash('Please sign in first!')
+        flash('Please sign in first!', 'danger')
         return redirect('/login')
     user = User.query.get(username)
     session.pop('username')
     db.session.delete(user)
     db.session.commit()
-    flash('Your account has been deleted.')
+    flash('Your account has been deleted.', 'danger')
     return redirect('/')
 
 @app.route('/users/<username>/feedback/add', methods=['GET', 'POST'])
 def add_feedback(username):
     if 'username' not in session:
-        flash('Please sign in first!')
+        flash('Please sign in first!', 'danger')
         return redirect('/login')
     
     form = FeedbackForm()
@@ -105,9 +105,43 @@ def add_feedback(username):
         db.session.add(feedback)
         db.session.commit()
 
-        flash('Your feedback has been added.')
+        flash('Your feedback has been added.', "success")
         return redirect(f'/users/{username}')
     
     return render_template('add_feedback.html', form=form)
+
+@app.route('/feedback/<int:feedback_id>/update', methods=['GET', 'POST'])
+def update_feedback(feedback_id):
+    if 'username' not in session:
+        flash('Please sign in first!', 'danger')
+        return redirect('/login')
+    
+    feedback = Feedback.query.get_or_404(feedback_id)
+
+    form = FeedbackForm()
+    form.title.data = feedback.title
+    form.content.data = feedback.content
+
+    if form.validate_on_submit():
+        # Get info for feedback from form
+        title = request.form.get('title')
+        content = request.form.get('content')
+        # content = form.content.data
+
+        # Update Feedback instance
+        new_feedback = Feedback.query.get_or_404(feedback_id)
+        new_feedback.title = title
+        new_feedback.content = content
+
+        # Add feedback to database
+        db.session.add(new_feedback)
+        db.session.commit()
+
+        username = feedback.user.username
+
+        flash('Your feedback has been updated.', "success")
+        return redirect(f'/users/{username}')
+    
+    return render_template('edit_feedback.html', form=form, feedback=feedback)
 
 
