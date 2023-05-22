@@ -3,6 +3,7 @@ from keys import SECRET_KEY
 from flask_debugtoolbar import DebugToolbarExtension
 from forms import RegisterForm, LoginForm, FeedbackForm
 from models import db, connect_db, User, Feedback
+from sqlalchemy.exc import IntegrityError
 
 app = Flask(__name__)
 app.app_context().push()
@@ -10,7 +11,7 @@ app.app_context().push()
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///feedback'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = SECRET_KEY
-app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
 debug = DebugToolbarExtension(app)
 connect_db(app)
@@ -34,10 +35,12 @@ def register_user():
         first_name = form.first_name.data
         last_name = form.last_name.data
 
-        new_user = User.register(username, password, email, first_name, last_name)
-        session['username'] = new_user.username
-
-        return redirect(f'/users/{username}')
+        try:
+            new_user = User.register(username, password, email, first_name, last_name)
+            session['username'] = new_user.username
+            return redirect(f'/users/{username}')
+        except IntegrityError:
+            form.username.errors.append('Username taken - please choose another.')
 
     return render_template('register.html', form=form)
 
