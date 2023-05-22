@@ -129,7 +129,6 @@ def update_feedback(feedback_id):
         # Get info for feedback from form
         title = request.form.get('title')
         content = request.form.get('content')
-        # content = form.content.data
 
         # Update Feedback instance
         new_feedback = Feedback.query.get_or_404(feedback_id)
@@ -146,5 +145,19 @@ def update_feedback(feedback_id):
         return redirect(f'/users/{username}')
     
     return render_template('edit_feedback.html', form=form, feedback=feedback)
+
+@app.route('/feedback/<int:feedback_id>/delete', methods=['POST'])
+def delete_feedback(feedback_id):
+    if 'username' not in session:
+        flash('Please sign in first!', 'danger')
+        return redirect('/login')
+    
+    feedback = Feedback.query.get_or_404(feedback_id)
+    username = feedback.user.username
+    db.session.delete(feedback)
+    db.session.commit()
+    flash('Your feedback has been deleted.', 'danger')
+    return redirect(f'/users/{username}')
+
 
 
